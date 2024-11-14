@@ -1,21 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
-using System.Security;
-using System.Security.Permissions;
-using BepInEx;
-using BepInEx.Configuration;
+﻿using BepInEx;
 using BepInEx.Logging;
-using Dissonance;
 using GameNetcodeStuff;
 using HarmonyLib;
-using Microsoft.CodeAnalysis;
 using ModelReplacement;
-using ModelReplacement.AvatarBodyUpdater;
 using UnityEngine;
 
 namespace CamVisuals
@@ -32,7 +19,9 @@ namespace CamVisuals
 
         public static ManualLogSource mls;
 
-        public static bool usingCameraVisuals;
+        //public static bool usingCameraVisuals;
+
+        //public static float[] colliderDims = { };
 
         private void Awake()
         {
@@ -61,16 +50,30 @@ namespace CamVisuals
         //    mls.LogInfo("Set the thing");
         //}
 
-        [HarmonyPatch(typeof(ModelReplacementAPI), "SetPlayerModelReplacement")]
+        //private static void TreePrintObjects(GameObject cur, int i)
+        //{
+        //    mls.LogInfo(i + ": " + cur.name + " (" + cur.transform.parent.name + ')');
+        //    foreach (Transform t in cur.transform)
+        //        TreePrintObjects(t.gameObject, i + 1);
+        //}
+
+        [HarmonyPatch(typeof(PlayerControllerB), "Update")]
         [HarmonyPostfix]
-        public static void DetectCamera(PlayerControllerB player)
+        public static void DetectCamera(PlayerControllerB __instance)
         {
-            GameObject gameObject = ((Component)player).gameObject;
+            GameObject gameObject = ((Component)__instance).gameObject;
             Transform val = gameObject.transform.Find("ScavengerModel").Find("metarig").Find("CameraContainer");
             if ((UnityEngine.Object)(object)val != null)
             {
                 GameObject gameObject2 = ((Component)val).gameObject;
-                if ((UnityEngine.Object)(object)gameObject.GetComponent<MROWPRISONER>())
+                //CharacterController playerCollider = player.thisController;
+                //if (colliderDims.Length == 0 && !usingCameraVisuals)
+                //{
+                //    colliderDims = new float[] { playerCollider.radius, playerCollider.stepOffset, playerCollider.skinWidth };
+                //    mls.LogInfo(colliderDims.ToString());
+                //    TreePrintObjects(gameObject, 0);
+                //}
+                if ((UnityEngine.Object)(object)gameObject.GetComponent<MROWPRISONER>() && Plugin.bigBird.Value)
                 {
                     gameObject.transform.Find("ScavengerModel").Find("metarig").Find("CameraContainer")
                         .Find("MainCamera")
@@ -78,17 +81,19 @@ namespace CamVisuals
                         .localPosition = new Vector3(0.01f, -0.036f, -0.063f);
                     //gameObject.transform.localScale = Vector3.one * Plugin.valueA.Value;
                     gameObject.GetComponent<BodyReplacementBase>().replacementModel.transform.localScale = Vector3.one/* * Plugin.valueB.Value*/;
-                    gameObject.GetComponent<BodyReplacementBase>().transform.localScale = Vector3.one * 1.33f/* Plugin.valueC.Value*/;
-                    usingCameraVisuals = true;
+                    gameObject.transform.localScale = Vector3.one * 1.33f/* Plugin.valueC.Value*/;
+                    //usingCameraVisuals = true;
                 }
-                else if (!(UnityEngine.Object)(object)gameObject.GetComponent<MROWPRISONER>() && usingCameraVisuals)
+                else if (gameObject.transform.localScale != Vector3.one)
                 {
                     gameObject.transform.Find("ScavengerModel").Find("metarig").Find("CameraContainer")
                         .Find("MainCamera")
                         .Find("HUDHelmetPosition")
                         .localPosition = new Vector3(0.01f, -0.048f, -0.063f);
-                    //gameObject.transform.localScale = new Vector3(1f, 1f, 1f);
-                    usingCameraVisuals = false;
+                    if ((UnityEngine.Object)(object)gameObject.GetComponent<MROWPRISONER>())
+                        gameObject.GetComponent<BodyReplacementBase>().replacementModel.transform.localScale = Vector3.one;
+                    gameObject.transform.localScale = Vector3.one;
+                    //usingCameraVisuals = false;
                 }
             }
             else
@@ -102,7 +107,7 @@ namespace CamVisuals
         public static void ResetCamera(PlayerControllerB player)
         {
             GameObject gameObject = ((Component)player).gameObject;
-            gameObject.transform.localScale = new Vector3(1f, 1f, 1f);
+            gameObject.transform.localScale = Vector3.one;
             gameObject.transform.Find("ScavengerModel").Find("metarig").Find("CameraContainer")
                 .Find("MainCamera")
                 .Find("HUDHelmetPosition")
@@ -115,8 +120,8 @@ namespace CamVisuals
         public static void DetectCamera()
         {
             PlayerControllerB localPlayerController = GameNetworkManager.Instance.localPlayerController;
-            baseSize = ((Component)localPlayerController).gameObject.GetComponent<BodyReplacementBase>().transform.localScale;
-            if (baseSize == Vector3.one * Plugin.valueC.Value)
+            BodyReplacementBase bodyReplacementBase = ((Component)localPlayerController).gameObject.GetComponent<BodyReplacementBase>() ?? null;
+            if (bodyReplacementBase != null && bodyReplacementBase.transform.localScale == Vector3.one * 1.33f/*Plugin.valueC.Value*/)
             {
                 ((Component)localPlayerController).gameObject.transform.Find("ScavengerModel/metarig/CameraContainer/MainCamera").localPosition = new Vector3(0f, -0.5f, -0.25f/*Plugin.valueD.Value, Plugin.valueE.Value*/);
             }

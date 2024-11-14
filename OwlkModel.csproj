@@ -17,6 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="OwlkScene\**" />
+    <EmbeddedResource Remove="OwlkScene\**" />
+    <None Remove="OwlkScene\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="owprisoner" />
   </ItemGroup>
   <ItemGroup>
