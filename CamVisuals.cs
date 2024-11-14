@@ -84,7 +84,7 @@ namespace CamVisuals
                     gameObject.transform.localScale = Vector3.one * 1.33f/* Plugin.valueC.Value*/;
                     //usingCameraVisuals = true;
                 }
-                else if (gameObject.transform.localScale != Vector3.one)
+                else if (gameObject.transform.localScale == Vector3.one * 1.33f)
                 {
                     gameObject.transform.Find("ScavengerModel").Find("metarig").Find("CameraContainer")
                         .Find("MainCamera")
