@@ -1,0 +1,11 @@
+{
+    "name": "OWOwlkModel",
+    "version_number": "0.2.0",
+    "website_url": "",
+    "description": "Adds a playable Owlk model from Outer Wilds",
+    "dependencies": [
+		"x753-More_Suits-1.4.0",
+        "BepInEx-BepInExPack-5.4.2100",
+		"BunyaPineTree-ModelReplacementAPI-2.3.1"
+    ]
+}
